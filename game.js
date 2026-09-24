@@ -37,8 +37,8 @@ const levels = [
       "#....##.....#.....#",
       "####.#####..#.###.#",
       "#....#...#......#.#",
-      "#.##.#.B.#.####.#.#",
-      "#.#..#...#....#.#.#",
+      "#.##.#.B........#.#",
+      "#.#..#...#.####.#.#",
       "#.#.########.#.#..#",
       "#...#......#.#.##.#",
       "#.###.####.#.#....#",
@@ -69,7 +69,7 @@ const levels = [
       "###.##.#.#.######.##",
       "#...#..#.#....#....#",
       "#.#.#.##.####.#.##.#",
-      "#.#...#B......#...F#",
+      "#.#...#B..........F#",
       "#.#####.#####.###..#",
       "#.....#.....#......#",
       "#.###.#####.#.####.#",
@@ -100,7 +100,7 @@ const levels = [
       "####.#####.#.#######",
       "#....#...#.#.......#",
       "#.##.#...#.#####.#.#",
-      "#.#..B...#.....#.#F#",
+      "#.#..B.........#.#F#",
       "#.#.####.#####.#.#.#",
       "#...#....#...#...#.#",
       "###.#.####.#.#####.#",
@@ -194,13 +194,13 @@ function movePlayer(dx, dy) {
   player.x = nextX;
   player.y = nextY;
 
-  // Interação ao encostar na caixa de vidro (distância 1)
+  // Interação ao encostar na caixa de vidro
   if (isNear(player, box, 1) && !hasWrench) {
     openQuestion();
     return;
   }
 
-  // Interação ao encostar nas torneiras (distância 1)
+  // Interação ao encostar nas torneiras
   const faucet = faucets.find(f => !f.closed && isNear(player, f, 1));
   if (faucet) {
     if (!hasWrench) {
