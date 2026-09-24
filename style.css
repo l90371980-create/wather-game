@@ -1,0 +1,273 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --blue-dark: #062b50;
+  --blue: #087ed1;
+  --blue-light: #5bd7ff;
+  --white: #f5fcff;
+  --green: #31c878;
+  --red: #ff6b6b;
+  --panel: rgba(5, 37, 73, 0.95);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--white);
+  background:
+    radial-gradient(circle at top, #52d9ff 0%, #0b75b7 42%, #06233f 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+}
+
+.app {
+  width: min(100%, 1000px);
+  min-height: 650px;
+  background: var(--panel);
+  border: 3px solid #58d9ff;
+  border-radius: 28px;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  position: relative;
+}
+
+.screen {
+  display: none;
+  min-height: 650px;
+  padding: 34px;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.screen.active {
+  display: flex;
+}
+
+.water-drop {
+  font-size: 70px;
+  filter: drop-shadow(0 8px 4px rgba(0, 0, 0, 0.3));
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 8vw, 5rem);
+  letter-spacing: 2px;
+  color: #61e3ff;
+  text-shadow: 4px 4px 0 #06416e;
+}
+
+h1 span {
+  color: white;
+}
+
+h2 {
+  margin: 0;
+  color: #8beaff;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+h3 {
+  color: #8beaff;
+  margin-bottom: 0;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #d5f8ff;
+  margin: 0;
+}
+
+button {
+  border: 2px solid #9ceeff;
+  border-radius: 13px;
+  padding: 13px 25px;
+  color: white;
+  background: linear-gradient(#129ce8, #075aa7);
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.12s, filter 0.12s;
+  box-shadow: 0 5px 0 #043c70;
+}
+
+button:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #043c70;
+}
+
+button.secondary {
+  background: linear-gradient(#46647d, #243d53);
+  border-color: #9bb6c9;
+}
+
+.menu-buttons {
+  width: min(100%, 330px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.small-note {
+  color: #b9e9f8;
+  font-size: 0.9rem;
+  max-width: 500px;
+}
+
+.instructions,
+ul {
+  width: min(100%, 700px);
+  text-align: left;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 20px 28px;
+  border-radius: 16px;
+  line-height: 1.55;
+}
+
+ul {
+  margin: 0;
+}
+
+.game-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  flex-wrap: wrap;
+}
+
+.game-header h2 {
+  font-size: 1.5rem;
+}
+
+.game-header p {
+  margin: 5px 0 0;
+  color: #b9e9f8;
+}
+
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hud span {
+  padding: 9px 12px;
+  border: 1px solid #72dfff;
+  border-radius: 10px;
+  background: #093d68;
+  font-weight: bold;
+}
+
+#gameCanvas {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  border: 3px solid #79dfff;
+  border-radius: 14px;
+  background: #102f49;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.game-message {
+  min-height: 24px;
+  margin: 0;
+  color: #d9faff;
+}
+
+.mobile-controls {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.mobile-controls div {
+  display: flex;
+  gap: 5px;
+}
+
+.mobile-controls button {
+  min-width: 54px;
+  padding: 12px;
+}
+
+.modal-screen {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.modal-card {
+  width: min(100%, 600px);
+  background: #08355d;
+  border: 2px solid #79e6ff;
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+}
+
+#questionText {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.answers {
+  display: grid;
+  gap: 12px;
+}
+
+.answers button {
+  text-align: left;
+}
+
+.feedback {
+  min-height: 25px;
+  font-weight: bold;
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 0;
+  }
+
+  .app {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  .screen {
+    min-height: 100vh;
+    padding: 22px 15px;
+  }
+
+  .mobile-controls {
+    display: flex;
+  }
+
+  .game-header {
+    align-items: flex-start;
+  }
+
+  .hud {
+    font-size: 0.85rem;
+  }
+
+  .instructions,
+  ul {
+    padding: 16px 20px;
+  }
+}

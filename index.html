@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WATHER GAME</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section id="menuScreen" class="screen active">
+      <div class="water-drop">💧</div>
+      <h1>WATHER <span>GAME</span></h1>
+      <p class="subtitle">Cada gota conta!</p>
+      <div class="menu-buttons">
+        <button id="playBtn">▶ JOGAR</button>
+        <button id="howBtn">📖 COMO JOGAR</button>
+        <button id="resetBtn" class="secondary">↻ REINICIAR PROGRESSO</button>
+      </div>
+      <p class="small-note">Projeto educativo sobre o uso consciente da água.</p>
+    </section>
+
+    <section id="howScreen" class="screen">
+      <h2>📖 COMO JOGAR</h2>
+      <div class="instructions">
+        <p>1. Explore o labirinto usando as setas do teclado ou WASD.</p>
+        <p>2. Encontre a caixa de vidro e leia a pergunta.</p>
+        <p>3. Acerte a resposta para liberar a chave inglesa.</p>
+        <p>4. Encontre e feche as 4 torneiras de cada fase.</p>
+        <p>5. Feche todas as torneiras para avançar.</p>
+        <p>6. Complete as 3 fases para vencer o jogo.</p>
+      </div>
+      <h3>Regras</h3>
+      <ul>
+        <li>Você precisa da chave inglesa para fechar as torneiras.</li>
+        <li>Respostas erradas podem ser tentadas novamente.</li>
+        <li>Não é possível atravessar as paredes do labirinto.</li>
+        <li>O objetivo é conscientizar sobre o desperdício de água.</li>
+      </ul>
+      <button id="backFromHowBtn">← VOLTAR</button>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <header class="game-header">
+        <div>
+          <h2>WATHER GAME</h2>
+          <p id="phaseTitle">Fase 1</p>
+        </div>
+        <div class="hud">
+          <span id="keyStatus">🔒 Chave: não</span>
+          <span id="faucetStatus">🚰 0/4</span>
+        </div>
+      </header>
+
+      <canvas id="gameCanvas" width="800" height="560" aria-label="Labirinto do jogo"></canvas>
+
+      <div class="mobile-controls" aria-label="Controles móveis">
+        <button data-move="up">▲</button>
+        <div>
+          <button data-move="left">◀</button>
+          <button data-move="down">▼</button>
+          <button data-move="right">▶</button>
+        </div>
+      </div>
+
+      <p id="gameMessage" class="game-message">Explore o labirinto!</p>
+      <button id="pauseBtn" class="secondary">⏸ MENU</button>
+    </section>
+
+    <section id="questionScreen" class="screen modal-screen">
+      <div class="modal-card">
+        <h2>📜 PERGUNTA</h2>
+        <p id="questionText"></p>
+        <div id="answers" class="answers"></div>
+        <p id="answerFeedback" class="feedback"></p>
+      </div>
+    </section>
+
+    <section id="winScreen" class="screen">
+      <div class="water-drop">🏆</div>
+      <h1>PARABÉNS!</h1>
+      <p class="subtitle">Você completou todas as fases!</p>
+      <p>Você ajudou a combater o desperdício de água.</p>
+      <button id="againBtn">↻ JOGAR NOVAMENTE</button>
+      <button id="menuFromWinBtn" class="secondary">← MENU PRINCIPAL</button>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
