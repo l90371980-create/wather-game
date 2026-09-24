@@ -36,7 +36,7 @@ const levels = [
       "#.##..#.#######.##.#",
       "#....##.....#.....#",
       "####.#####..#.###.#",
-      "#....#...#..#...#.#",
+      "#....#...#......#.#",
       "#.##.#.B.#.####.#.#",
       "#.#..#...#....#.#.#",
       "#.#.########.#.#..#",
@@ -194,14 +194,14 @@ function movePlayer(dx, dy) {
   player.x = nextX;
   player.y = nextY;
 
-  // Interação ao pisar/encostar na caixa
-  if (isNear(player, box, 0) && !hasWrench) {
+  // Interação ao encostar na caixa de vidro (distância 1)
+  if (isNear(player, box, 1) && !hasWrench) {
     openQuestion();
     return;
   }
 
-  // Interação com as torneiras
-  const faucet = faucets.find(f => !f.closed && isNear(player, f, 0));
+  // Interação ao encostar nas torneiras (distância 1)
+  const faucet = faucets.find(f => !f.closed && isNear(player, f, 1));
   if (faucet) {
     if (!hasWrench) {
       gameMessage.textContent = "Você precisa da chave inglesa!";
@@ -379,4 +379,3 @@ document.querySelectorAll("[data-move]").forEach(button => {
 });
 
 showScreen("menu");
-      
