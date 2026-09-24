@@ -42,12 +42,12 @@ const levels = [
       "#.#.########.#.#..#",
       "#...#......#.#.##.#",
       "#.###.####.#.#....#",
-      "#F....#..F.#...F..#",
+      "#F.......F.#...F..#",
       "#................##",
       "####################"
     ],
     faucets: [
-      {x: 18, y: 1}, {x: 1, y: 11}, {x: 8, y: 11}, {x: 15, y: 11}
+      {x: 18, y: 1}, {x: 1, y: 11}, {x: 9, y: 11}, {x: 15, y: 11}
     ],
     question: {
       text: "Qual atitude ajuda a economizar água?",
@@ -69,7 +69,7 @@ const levels = [
       "###.##.#.#.######.##",
       "#...#..#.#....#....#",
       "#.#.#.##.####.#.##.#",
-      "#.#...#B.....#....F#",
+      "#.#...#B......#...F#",
       "#.#####.#####.###..#",
       "#.....#.....#......#",
       "#.###.#####.#.####.#",
@@ -99,8 +99,8 @@ const levels = [
       "#....#.....#.......#",
       "####.#####.#.#######",
       "#....#...#.#.......#",
-      "#.##.#.#.#.#####.#.#",
-      "#.#..B.#.#.....#.#F#",
+      "#.##.#...#.#####.#.#",
+      "#.#..B...#.....#.#F#",
       "#.#.####.#####.#.#.#",
       "#...#....#...#...#.#",
       "###.#.####.#.#####.#",
@@ -109,7 +109,7 @@ const levels = [
       "####################"
     ],
     faucets: [
-      {x: 16, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 15, y: 11}
+      {x: 16, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 17, y: 11}
     ],
     question: {
       text: "Por que devemos evitar o desperdício de água?",
@@ -194,10 +194,13 @@ function movePlayer(dx, dy) {
   player.x = nextX;
   player.y = nextY;
 
-  if (isNear(player, box, 1) && !hasWrench) {
+  // Interação ao pisar/encostar na caixa
+  if (isNear(player, box, 0) && !hasWrench) {
     openQuestion();
+    return;
   }
 
+  // Interação com as torneiras
   const faucet = faucets.find(f => !f.closed && isNear(player, f, 0));
   if (faucet) {
     if (!hasWrench) {
@@ -331,10 +334,13 @@ document.getElementById("pauseBtn").addEventListener("click", () => {
 });
 document.getElementById("againBtn").addEventListener("click", startGame);
 document.getElementById("menuFromWinBtn").addEventListener("click", () => showScreen("menu"));
+
 document.getElementById("resetBtn").addEventListener("click", () => {
   currentPhase = 0;
   hasWrench = false;
   faucetsClosed = 0;
+  gameRunning = false;
+  showScreen("menu");
   alert("Progresso reiniciado!");
 });
 
@@ -373,3 +379,4 @@ document.querySelectorAll("[data-move]").forEach(button => {
 });
 
 showScreen("menu");
+      
