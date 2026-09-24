@@ -23,6 +23,7 @@ const ROWS = 14;
 
 let currentPhase = 0;
 let hasWrench = false;
+let boxOpened = false;
 let faucetsClosed = 0;
 let questionOpen = false;
 let gameRunning = false;
@@ -48,6 +49,10 @@ const levels = [
     ],
     faucets: [
       {x: 18, y: 1}, {x: 1, y: 11}, {x: 9, y: 11}, {x: 15, y: 11}
+    ],
+    enemies: [
+      {x: 8, y: 3, dx: 1, dy: 0},
+      {x: 1, y: 12, dx: 1, dy: 0}
     ],
     question: {
       text: "Qual atitude ajuda a economizar água?",
@@ -80,6 +85,11 @@ const levels = [
     faucets: [
       {x: 18, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 15, y: 11}
     ],
+    enemies: [
+      {x: 5, y: 9, dx: 1, dy: 0},
+      {x: 13, y: 5, dx: 0, dy: 1},
+      {x: 2, y: 3, dx: 1, dy: 0}
+    ],
     question: {
       text: "Qual situação pode gastar muita água?",
       answers: [
@@ -111,6 +121,12 @@ const levels = [
     faucets: [
       {x: 16, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 17, y: 11}
     ],
+    enemies: [
+      {x: 10, y: 3, dx: 1, dy: 0},
+      {x: 12, y: 9, dx: 0, dy: 1},
+      {x: 5, y: 12, dx: 1, dy: 0},
+      {x: 16, y: 5, dx: 0, dy: 1}
+    ],
     question: {
       text: "Por que devemos evitar o desperdício de água?",
       answers: [
@@ -127,6 +143,7 @@ let map = [];
 let player = {x: 1, y: 1};
 let box = {x: 0, y: 0};
 let faucets = [];
+let enemies = [];
 
 function showScreen(name) {
   Object.values(screens).forEach(screen => screen.classList.remove("active"));
@@ -143,6 +160,7 @@ function loadPhase(index) {
   currentPhase = index;
   map = levels[index].map.map(row => row.split(""));
   hasWrench = false;
+  boxOpened = false;
   faucetsClosed = 0;
   questionOpen = false;
   gameRunning = true;
@@ -161,6 +179,8 @@ function loadPhase(index) {
   }
 
   faucets = levels[index].faucets.map(item => ({...item, closed: false}));
+  enemies = levels[index].enemies.map(e => ({...e}));
+
   phaseTitle.textContent = levels[index].name;
   gameMessage.textContent = "Encontre a caixa de vidro!";
   updateHud();
@@ -180,6 +200,32 @@ function isNear(a, b, distance = 1) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= distance;
 }
 
+function moveEnemies() {
+  enemies.forEach(enemy => {
+    let nextX = enemy.x + enemy.dx;
+    let nextY = enemy.y + enemy.dy;
+
+    // Se bater numa parede, inverte o sentido
+    if (isWall(nextX, nextY)) {
+      enemy.dx *= -1;
+      enemy.dy *= -1;
+      nextX = enemy.x + enemy.dx;
+      nextY = enemy.y + enemy.dy;
+    }
+
+    if (!isWall(nextX, nextY)) {
+      enemy.x = nextX;
+      enemy.y = nextY;
+    }
+
+    // Verifica colisão com o jogador
+    if (enemy.x === player.x && enemy.y === player.y) {
+      gameMessage.textContent = "Cuidado! Um monstro de sujeira apanhou-te! Reiniciando fase...";
+      player = {x: 1, y: 1};
+    }
+  });
+}
+
 function movePlayer(dx, dy) {
   if (!gameRunning || questionOpen) return;
 
@@ -194,8 +240,11 @@ function movePlayer(dx, dy) {
   player.x = nextX;
   player.y = nextY;
 
-  // Interação ao encostar na caixa de vidro
-  if (isNear(player, box, 1) && !hasWrench) {
+  // Move os inimigos cada vez que o jogador se move
+  moveEnemies();
+
+  // Interação ao encostar na caixa de vidro (se ainda não foi aberta)
+  if (!boxOpened && isNear(player, box, 1) && !hasWrench) {
     openQuestion();
     return;
   }
@@ -242,6 +291,7 @@ function answerQuestion(index) {
 
   if (index === q.correct) {
     hasWrench = true;
+    boxOpened = true; // Marca a caixa como aberta para sumir com ela
     questionOpen = false;
     showScreen("game");
     gameMessage.textContent = "Resposta correta! Você recebeu a chave inglesa. 🔧";
@@ -284,8 +334,9 @@ function draw() {
     }
   }
 
-  drawBox();
+  if (!boxOpened) drawBox();
   faucets.forEach(drawFaucet);
+  enemies.forEach(drawEnemy);
   drawPlayer();
 }
 
@@ -302,7 +353,7 @@ function drawBox() {
   ctx.font = "23px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(hasWrench ? "🔧" : "🔒", px + TILE / 2, py + TILE / 2);
+  ctx.fillText("🔒", px + TILE / 2, py + TILE / 2);
 }
 
 function drawFaucet(faucet) {
@@ -313,6 +364,16 @@ function drawFaucet(faucet) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(faucet.closed ? "✅" : "🚰", px + TILE / 2, py + TILE / 2);
+}
+
+function drawEnemy(enemy) {
+  const px = enemy.x * TILE;
+  const py = enemy.y * TILE;
+
+  ctx.font = "26px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("👾", px + TILE / 2, py + TILE / 2);
 }
 
 function drawPlayer() {
@@ -338,6 +399,7 @@ document.getElementById("menuFromWinBtn").addEventListener("click", () => showSc
 document.getElementById("resetBtn").addEventListener("click", () => {
   currentPhase = 0;
   hasWrench = false;
+  boxOpened = false;
   faucetsClosed = 0;
   gameRunning = false;
   showScreen("menu");
@@ -379,3 +441,4 @@ document.querySelectorAll("[data-move]").forEach(button => {
 });
 
 showScreen("menu");
+    
