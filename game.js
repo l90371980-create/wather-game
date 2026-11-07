@@ -47,12 +47,10 @@ const levels = [
       "#................##",
       "####################"
     ],
-    faucets: [
-      {x: 18, y: 1}, {x: 1, y: 11}, {x: 9, y: 11}, {x: 15, y: 11}
-    ],
+    faucets: [{x: 18, y: 1}, {x: 1, y: 11}, {x: 9, y: 11}, {x: 15, y: 11}],
     enemies: [
-      {x: 8, y: 3, dx: 1, dy: 0},
-      {x: 1, y: 12, dx: 1, dy: 0}
+      {x: 8 * TILE + 20, y: 3 * TILE + 20, speed: 2},
+      {x: 1 * TILE + 20, y: 12 * TILE + 20, speed: 2}
     ],
     question: {
       text: "Qual atitude ajuda a economizar água?",
@@ -73,7 +71,7 @@ const levels = [
       "#....#...#....#....#",
       "###.##.#.#.######.##",
       "#...#..#.#....#....#",
-      "#.#.#.##.####.#.##.#",
+      "#.#.#.##.####.#.FH.#",
       "#.#...#B..........F#",
       "#.#####.#####.###..#",
       "#.....#.....#......#",
@@ -82,13 +80,11 @@ const levels = [
       "#...#..............#",
       "####################"
     ],
-    faucets: [
-      {x: 18, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 15, y: 11}
-    ],
+    faucets: [{x: 18, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 15, y: 11}],
     enemies: [
-      {x: 5, y: 9, dx: 1, dy: 0},
-      {x: 13, y: 5, dx: 0, dy: 1},
-      {x: 2, y: 3, dx: 1, dy: 0}
+      {x: 5 * TILE + 20, y: 9 * TILE + 20, speed: 2},
+      {x: 13 * TILE + 20, y: 5 * TILE + 20, speed: 2.2},
+      {x: 2 * TILE + 20, y: 3 * TILE + 20, speed: 2}
     ],
     question: {
       text: "Qual situação pode gastar muita água?",
@@ -118,14 +114,12 @@ const levels = [
       "#..................#",
       "####################"
     ],
-    faucets: [
-      {x: 16, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 17, y: 11}
-    ],
+    faucets: [{x: 16, y: 1}, {x: 18, y: 7}, {x: 1, y: 11}, {x: 17, y: 11}],
     enemies: [
-      {x: 10, y: 3, dx: 1, dy: 0},
-      {x: 12, y: 9, dx: 0, dy: 1},
-      {x: 5, y: 12, dx: 1, dy: 0},
-      {x: 16, y: 5, dx: 0, dy: 1}
+      {x: 10 * TILE + 20, y: 3 * TILE + 20, speed: 2.2},
+      {x: 12 * TILE + 20, y: 9 * TILE + 20, speed: 2.5},
+      {x: 5 * TILE + 20, y: 12 * TILE + 20, speed: 2},
+      {x: 16 * TILE + 20, y: 5 * TILE + 20, speed: 2.5}
     ],
     question: {
       text: "Por que devemos evitar o desperdício de água?",
@@ -139,11 +133,12 @@ const levels = [
   }
 ];
 
-let map = [];
-let player = {x: 1, y: 1};
+let mapGrid = [];
+let playerObj;
+let particleSys = new ParticleSystem();
+let enemiesArr = [];
 let box = {x: 0, y: 0};
 let faucets = [];
-let enemies = [];
 
 function showScreen(name) {
   Object.values(screens).forEach(screen => screen.classList.remove("active"));
@@ -158,116 +153,42 @@ function startGame() {
 
 function loadPhase(index) {
   currentPhase = index;
-  map = levels[index].map.map(row => row.split(""));
+  mapGrid = levels[index].map.map(row => row.split(""));
   hasWrench = false;
   boxOpened = false;
   faucetsClosed = 0;
   questionOpen = false;
   gameRunning = true;
 
+  let startPx = 1 * TILE + 20;
+  let startPy = 1 * TILE + 20;
+
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
-      if (map[y][x] === "P") {
-        player = {x, y};
-        map[y][x] = ".";
+      if (mapGrid[y][x] === "P") {
+        startPx = x * TILE + 20;
+        startPy = y * TILE + 20;
+        mapGrid[y][x] = ".";
       }
-      if (map[y][x] === "B") {
+      if (mapGrid[y][x] === "B") {
         box = {x, y};
-        map[y][x] = ".";
+        mapGrid[y][x] = ".";
       }
     }
   }
 
+  playerObj = new Player(startPx, startPy, 14);
   faucets = levels[index].faucets.map(item => ({...item, closed: false}));
-  enemies = levels[index].enemies.map(e => ({...e}));
+  enemiesArr = levels[index].enemies.map(e => new AutonomousEnemy(e.x, e.y, 14, e.speed));
 
   phaseTitle.textContent = levels[index].name;
   gameMessage.textContent = "Encontre a caixa de vidro!";
   updateHud();
-  draw();
 }
 
 function updateHud() {
   keyStatus.textContent = hasWrench ? "🔧 Chave: sim" : "🔒 Chave: não";
   faucetStatus.textContent = `🚰 ${faucetsClosed}/4`;
-}
-
-function isWall(x, y) {
-  return x < 0 || y < 0 || x >= COLS || y >= ROWS || map[y][x] === "#";
-}
-
-function isNear(a, b, distance = 1) {
-  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= distance;
-}
-
-function moveEnemies() {
-  enemies.forEach(enemy => {
-    let nextX = enemy.x + enemy.dx;
-    let nextY = enemy.y + enemy.dy;
-
-    // Se bater numa parede, inverte o sentido
-    if (isWall(nextX, nextY)) {
-      enemy.dx *= -1;
-      enemy.dy *= -1;
-      nextX = enemy.x + enemy.dx;
-      nextY = enemy.y + enemy.dy;
-    }
-
-    if (!isWall(nextX, nextY)) {
-      enemy.x = nextX;
-      enemy.y = nextY;
-    }
-
-    // Verifica colisão com o jogador
-    if (enemy.x === player.x && enemy.y === player.y) {
-      gameMessage.textContent = "Cuidado! Um monstro de sujeira apanhou-te! Reiniciando fase...";
-      player = {x: 1, y: 1};
-    }
-  });
-}
-
-function movePlayer(dx, dy) {
-  if (!gameRunning || questionOpen) return;
-
-  const nextX = player.x + dx;
-  const nextY = player.y + dy;
-
-  if (isWall(nextX, nextY)) {
-    gameMessage.textContent = "Você encontrou uma parede!";
-    return;
-  }
-
-  player.x = nextX;
-  player.y = nextY;
-
-  // Move os inimigos cada vez que o jogador se move
-  moveEnemies();
-
-  // Interação ao encostar na caixa de vidro (se ainda não foi aberta)
-  if (!boxOpened && isNear(player, box, 1) && !hasWrench) {
-    openQuestion();
-    return;
-  }
-
-  // Interação ao encostar nas torneiras
-  const faucet = faucets.find(f => !f.closed && isNear(player, f, 1));
-  if (faucet) {
-    if (!hasWrench) {
-      gameMessage.textContent = "Você precisa da chave inglesa!";
-    } else {
-      faucet.closed = true;
-      faucetsClosed++;
-      gameMessage.textContent = "Torneira fechada! 💧";
-      updateHud();
-
-      if (faucetsClosed === 4) {
-        gameMessage.textContent = "Todas as torneiras foram fechadas!";
-        setTimeout(nextPhase, 700);
-      }
-    }
-  }
-
-  draw();
 }
 
 function openQuestion() {
@@ -291,12 +212,12 @@ function answerQuestion(index) {
 
   if (index === q.correct) {
     hasWrench = true;
-    boxOpened = true; // Marca a caixa como aberta para sumir com ela
+    boxOpened = true;
     questionOpen = false;
     showScreen("game");
     gameMessage.textContent = "Resposta correta! Você recebeu a chave inglesa. 🔧";
+    particleSys.spawn(playerObj.x, playerObj.y, '#f59e0b', 25);
     updateHud();
-    draw();
   } else {
     answerFeedback.textContent = "Resposta incorreta. Tente novamente!";
     answerFeedback.style.color = "#ff9b9b";
@@ -312,45 +233,105 @@ function nextPhase() {
   }
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Loop de Animação e Renderização em Tempo Real (60 FPS)
+function gameLoop() {
+  if (gameRunning && !questionOpen) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (let y = 0; y < ROWS; y++) {
-    for (let x = 0; x < COLS; x++) {
-      const px = x * TILE;
-      const py = y * TILE;
+    // 1. Desenha Labirinto
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const px = x * TILE;
+        const py = y * TILE;
 
-      ctx.fillStyle = (x + y) % 2 === 0 ? "#173d58" : "#14364e";
-      ctx.fillRect(px, py, TILE, TILE);
+        ctx.fillStyle = (x + y) % 2 === 0 ? "#0f172a" : "#1e293b";
+        ctx.fillRect(px, py, TILE, TILE);
 
-      if (map[y][x] === "#") {
-        ctx.fillStyle = "#8ba5b7";
-        ctx.fillRect(px + 3, py + 3, TILE - 6, TILE - 6);
-        ctx.fillStyle = "#506b80";
-        ctx.fillRect(px + 6, py + 6, TILE - 12, 5);
-        ctx.strokeStyle = "#c5d9e5";
-        ctx.strokeRect(px + 4, py + 4, TILE - 8, TILE - 8);
+        if (mapGrid[y][x] === "#") {
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(px + 6, py + 6, TILE - 12, TILE - 12);
+        }
       }
     }
+
+    // 2. Elementos Interativos
+    if (!boxOpened) drawBox();
+    faucets.forEach(drawFaucet);
+
+    // 3. Atualizar e Desenhar Jogador
+    playerObj.update(mapGrid, TILE);
+    playerObj.draw(ctx);
+
+    // 4. Atualizar e Desenhar Oponentes Autónomos
+    for (const enemy of enemiesArr) {
+      enemy.update(mapGrid, TILE);
+      enemy.draw(ctx);
+
+      // Colisão contínua com o jogador
+      const dist = Math.hypot(enemy.x - playerObj.x, enemy.y - playerObj.y);
+      if (dist < enemy.radius + playerObj.radius) {
+        gameMessage.textContent = "Cuidado! O monstro de sujeira te pegou! Reiniciando fase...";
+        particleSys.spawn(playerObj.x, playerObj.y, '#ef4444', 20);
+        playerObj.x = 1 * TILE + 20;
+        playerObj.y = 1 * TILE + 20;
+      }
+    }
+
+    // 5. Interações com Caixa e Torneiras
+    checkInteractions();
+
+    // 6. Atualizar Partículas
+    particleSys.update();
+    particleSys.draw(ctx);
   }
 
-  if (!boxOpened) drawBox();
-  faucets.forEach(drawFaucet);
-  enemies.forEach(drawEnemy);
-  drawPlayer();
+  requestAnimationFrame(gameLoop);
+}
+
+function checkInteractions() {
+  const pCol = Math.floor(playerObj.x / TILE);
+  const pRow = Math.floor(playerObj.y / TILE);
+
+  // Caixa de pergunta
+  if (!boxOpened && Math.abs(pCol - box.x) <= 1 && Math.abs(pRow - box.y) <= 1 && !hasWrench) {
+    openQuestion();
+    return;
+  }
+
+  // Torneiras
+  faucets.forEach(f => {
+    if (!f.closed && Math.abs(pCol - f.x) <= 1 && Math.abs(pRow - f.y) <= 1) {
+      if (!hasWrench) {
+        gameMessage.textContent = "Você precisa da chave inglesa!";
+      } else {
+        f.closed = true;
+        faucetsClosed++;
+        particleSys.spawn(f.x * TILE + 20, f.y * TILE + 20, '#06b6d4', 20);
+        gameMessage.textContent = "Torneira fechada! 💧";
+        updateHud();
+
+        if (faucetsClosed === 4) {
+          gameMessage.textContent = "Todas as torneiras foram fechadas!";
+          setTimeout(nextPhase, 800);
+        }
+      }
+    }
+  });
 }
 
 function drawBox() {
   const px = box.x * TILE;
   const py = box.y * TILE;
 
-  ctx.fillStyle = "rgba(63, 204, 255, 0.35)";
-  ctx.fillRect(px + 5, py + 5, TILE - 10, TILE - 10);
-  ctx.strokeStyle = "#a9f3ff";
+  ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+  ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8);
+  ctx.strokeStyle = "#38bdf8";
   ctx.lineWidth = 2;
-  ctx.strokeRect(px + 5, py + 5, TILE - 10, TILE - 10);
+  ctx.strokeRect(px + 4, py + 4, TILE - 8, TILE - 8);
 
-  ctx.font = "23px Arial";
+  ctx.font = "20px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("🔒", px + TILE / 2, py + TILE / 2);
@@ -360,32 +341,13 @@ function drawFaucet(faucet) {
   const px = faucet.x * TILE;
   const py = faucet.y * TILE;
 
-  ctx.font = "25px Arial";
+  ctx.font = "24px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(faucet.closed ? "✅" : "🚰", px + TILE / 2, py + TILE / 2);
 }
 
-function drawEnemy(enemy) {
-  const px = enemy.x * TILE;
-  const py = enemy.y * TILE;
-
-  ctx.font = "26px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("👾", px + TILE / 2, py + TILE / 2);
-}
-
-function drawPlayer() {
-  const px = player.x * TILE;
-  const py = player.y * TILE;
-
-  ctx.font = "28px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("🧍", px + TILE / 2, py + TILE / 2);
-}
-
+// Event Listeners
 document.getElementById("playBtn").addEventListener("click", startGame);
 document.getElementById("howBtn").addEventListener("click", () => showScreen("how"));
 document.getElementById("backFromHowBtn").addEventListener("click", () => showScreen("menu"));
@@ -406,39 +368,24 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   alert("Progresso reiniciado!");
 });
 
-document.addEventListener("keydown", event => {
-  const keys = {
-    ArrowUp: [0, -1],
-    w: [0, -1],
-    W: [0, -1],
-    ArrowDown: [0, 1],
-    s: [0, 1],
-    S: [0, 1],
-    ArrowLeft: [-1, 0],
-    a: [-1, 0],
-    A: [-1, 0],
-    ArrowRight: [1, 0],
-    d: [1, 0],
-    D: [1, 0]
-  };
-
-  if (keys[event.key]) {
-    event.preventDefault();
-    movePlayer(...keys[event.key]);
-  }
-});
-
+// Suporte a botões touch/mobile
 document.querySelectorAll("[data-move]").forEach(button => {
-  button.addEventListener("click", () => {
-    const moves = {
-      up: [0, -1],
-      down: [0, 1],
-      left: [-1, 0],
-      right: [1, 0]
-    };
-    movePlayer(...moves[button.dataset.move]);
+  const dir = button.dataset.move;
+  button.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (dir === 'up') playerObj.keys.ArrowUp = true;
+    if (dir === 'down') playerObj.keys.ArrowDown = true;
+    if (dir === 'left') playerObj.keys.ArrowLeft = true;
+    if (dir === 'right') playerObj.keys.ArrowRight = true;
+  });
+  button.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    if (dir === 'up') playerObj.keys.ArrowUp = false;
+    if (dir === 'down') playerObj.keys.ArrowDown = false;
+    if (dir === 'left') playerObj.keys.ArrowLeft = false;
+    if (dir === 'right') playerObj.keys.ArrowRight = false;
   });
 });
 
 showScreen("menu");
-    
+requestAnimationFrame(gameLoop);
